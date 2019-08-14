@@ -17,7 +17,7 @@ setup(
     packages=['sslh'],
     package_dir={'sslh': 'sslh/'},
     package_data={'sslh': [
-        'sensitive_species/*', 'sensitive_species/shapefiles/aus/*']},
+        'data/*', 'data/shapefiles/PSMA/*/*']},
     classifiers=[
         "Framework :: Python",
         "Intended Audience :: Developers",
