@@ -56,7 +56,5 @@ class TestGeneralisation:
             "Macropus giganteus",
             "Lagorchestes asomatus"]
 
-        for name in species_names:
-            logger.debug('{} -> {}'.format(
-                name, self.ala_lookup.get(name)))
-            assert self.ala_lookup.get(name) is not None
+        for species, result in zip(self.ala_lookup.get_bulk(species_names)):
+            assert result is not None

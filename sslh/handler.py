@@ -31,6 +31,8 @@ def one(l):
     return l[0]
 
 def normalise_species_name(sn):
+    if sn is None:
+        return
     return sn.lower().strip()
 
 
@@ -45,21 +47,35 @@ class ALASpeciesLookup:
         self._cache = {}
         self.url = "https://bie.ala.org.au/ws/species/lookup/bulk"
 
-    def get(self, species_name):
+    def get_bulk(self, species_names):
         '''
         Find standard name for given the species from ALA.
         using the bulklookup name service.
         '''
-        if species_name not in self._cache:
-            self._cache[species_name] = self._ala_lookup(species_name)
-        return self._cache[species_name]
+        species_names = list(map(normalise_species_name, species_names))
+        # we don't bother using the cache for bulk requests, but
+        # it's there to handle one-off queries later on
+        response = self._ala_lookup(species_names)
+        logger.debug("ALASpeciesLookup.get_bulk({})".format(species_names))
+        for species_name, result in zip(species_names, response):
+            self._cache[species_name] = normalise_species_name(result.get('name'))
+        return response
 
-    def _ala_lookup(self, species_name):
-        response = requests.post(self.url, json={"names": [species_name]})
+    def get(self, species_name):
+        species_name = normalise_species_name(species_name)
+        if species_name in self._cache:
+            return self._cache[species_name]
+        return self.get_bulk([species_name])[0]
+
+    def _ala_lookup(self, species_names):
+        response = requests.post(self.url, json={"names": species_names})
         result = response.json()
-        # GB: this looks fishy, what if we have more than one species
-        if result and result[0]:
-            return normalise_species_name(result[0]['name'])
+        if response.status_code != 200 or not result:
+            raise Exception("ALASpeciesLookup: {} -> {}/{}".format(
+                species_names,
+                response.status_code,
+                result))
+        return result
 
 
 class GeneralisationRules:
@@ -219,9 +235,9 @@ class SensitiveDataGeneraliser:
         lat, lon = Generalisation(expr).apply(
             latitude, longitude)
 
-        logger.debug(
-            "generalisation({}): species_name={}: {},{} -> {},{}".format(
-                expr, species_name, latitude, longitude, lat, lon))
+        # logger.debug(
+        #     "generalisation({}): species_name={}: {},{} -> {},{}".format(
+        #         expr, species_name, latitude, longitude, lat, lon))
 
         return GeneralisedData(
             species_name, lat, lon, expr, ala_species_name)
