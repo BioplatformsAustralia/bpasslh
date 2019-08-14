@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="sslh",
-    version='2.0.2',
+    version='2.0.3',
     url="https://github.com/BioplatformsAustralia/sslh",
     author="Bioplatforms Australia",
     author_email="help@bioplatforms.com",

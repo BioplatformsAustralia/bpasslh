@@ -56,5 +56,5 @@ class TestGeneralisation:
             "Macropus giganteus",
             "Lagorchestes asomatus"]
 
-        for species, result in zip(self.ala_lookup.get_bulk(species_names)):
+        for species, result in zip(species_names, self.ala_lookup.get_bulk(species_names)):
             assert result is not None

@@ -57,9 +57,12 @@ class ALASpeciesLookup:
         # it's there to handle one-off queries later on
         response = self._ala_lookup(species_names)
         logger.debug("ALASpeciesLookup.get_bulk({})".format(species_names))
+        ala_names = []
         for species_name, result in zip(species_names, response):
-            self._cache[species_name] = normalise_species_name(result.get('name'))
-        return response
+            ala_name = normalise_species_name(result.get('name'))
+            self._cache[species_name] = ala_name
+            ala_names.append(ala_name)
+        return ala_names
 
     def get(self, species_name):
         species_name = normalise_species_name(species_name)
