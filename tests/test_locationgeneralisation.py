@@ -1,9 +1,9 @@
-from sslh.handler import (
+from bpasslh.handler import (
     normalise_species_name,
     Generalisation,
     SensitiveDataGeneraliser,
     ALASpeciesLookup)
-from sslh.util import make_logger
+from bpasslh.util import make_logger
 
 logger = make_logger(__name__)
 

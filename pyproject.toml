@@ -3,11 +3,16 @@ requires = ["poetry"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry]
-name = "sslh"
+name = "bpasslh"
 version = "2.1.0"
 authors = ["Grahame Bowland <grahame.bowland@qcif.edu.au>"]
 description = "Location generalisation for sensitive species"
 readme = "README.md"
+include = [
+    "README.md",
+    "LICENSE.txt",
+    "bpasslh/sensitive_species/**"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.6"
