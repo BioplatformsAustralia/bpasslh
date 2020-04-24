@@ -7,46 +7,55 @@ import csv
 
 from collections import namedtuple
 
+
 def make_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     fmt = logging.Formatter(
-        "%(asctime)s [%(levelname)-7s] [%(threadName)s]  %(message)s")
+        "%(asctime)s [%(levelname)-7s] [%(threadName)s]  %(message)s"
+    )
     handler.setFormatter(fmt)
     logger.addHandler(handler)
     return logger
 
 
 digit_words = {
-    '0': 'zero',
-    '1': 'one',
-    '2': 'two',
-    '3': 'three',
-    '4': 'four',
-    '5': 'five',
-    '6': 'six',
-    '7': 'seven',
-    '8': 'eight',
-    '9': 'nine',
+    "0": "zero",
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four",
+    "5": "five",
+    "6": "six",
+    "7": "seven",
+    "8": "eight",
+    "9": "nine",
 }
 
 
-def csv_to_named_tuple(typname, fname, mode='r', additional_context=None, cleanup=None, dialect='excel'):
+def csv_to_named_tuple(
+    typname, fname, mode="r", additional_context=None, cleanup=None, dialect="excel"
+):
     if fname is None:
         return [], []
 
     def clean_name(s):
-        s = s.lower().strip().replace('-', '_').replace(' ', '_')
-        s = ''.join(
-            [t for t in s if t in string.ascii_letters or t in string.digits or t == '_'])
+        s = s.lower().strip().replace("-", "_").replace(" ", "_")
+        s = "".join(
+            [
+                t
+                for t in s
+                if t in string.ascii_letters or t in string.digits or t == "_"
+            ]
+        )
         if s[0] in string.digits:
             s = digit_words[s[0]] + s[1:]
-        s = s.strip('_')
-        s = re.sub(r'__+', '_', s).strip('_')
+        s = s.strip("_")
+        s = re.sub(r"__+", "_", s).strip("_")
         # reserved words aren't permitted
-        if s == 'class':
-            s = 'class_'
+        if s == "class":
+            s = "class_"
         return s
 
     additional_keys = []
@@ -60,6 +69,5 @@ def csv_to_named_tuple(typname, fname, mode='r', additional_context=None, cleanu
         for row in r:
             if cleanup is not None:
                 row = [cleanup(t) for t in row]
-            rows.append(typ(*(row + [additional_context[t]
-                                     for t in additional_keys])))
+            rows.append(typ(*(row + [additional_context[t] for t in additional_keys])))
         return header, rows

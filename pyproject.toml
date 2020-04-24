@@ -1,0 +1,50 @@
+[build-system]
+requires = ["poetry"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry]
+name = "sslh"
+version = "2.1.0"
+authors = ["Grahame Bowland <grahame.bowland@qcif.edu.au>"]
+description = "Location generalisation for sensitive species"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+shapely = "^1.7.0"
+fiona = "^1.8.13"
+requests = "^2.23.0"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+tox = "^3.14.6"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py38
+isolated_build = True
+
+[testenv]
+deps=pytest
+commands=pytest
+"""
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | tests/.*/setup.py
+)/
+'''

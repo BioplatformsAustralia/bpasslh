@@ -15,20 +15,22 @@ DATA_DIR = "data"
 
 
 GeneralisedData = collections.namedtuple(
-    'GeneralisedData',
+    "GeneralisedData",
     [
-        'species_name',
-        'latitude',
-        'longitude',
-        'location_generalisation',
-        'ala_species_name'
-    ])
+        "species_name",
+        "latitude",
+        "longitude",
+        "location_generalisation",
+        "ala_species_name",
+    ],
+)
 
 
 def one(l):
-    assert(type(l) == list)
-    assert(len(l) == 1)
+    assert type(l) == list
+    assert len(l) == 1
     return l[0]
+
 
 def normalise_species_name(sn):
     if sn is None:
@@ -37,10 +39,8 @@ def normalise_species_name(sn):
 
 
 def resolve_package_path(rel_path):
-    return os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            rel_path))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), rel_path))
+
 
 class ALASpeciesLookup:
     def __init__(self):
@@ -48,10 +48,10 @@ class ALASpeciesLookup:
         self.url = "https://bie.ala.org.au/ws/species/lookup/bulk"
 
     def get_bulk(self, species_names):
-        '''
+        """
         Find standard name for given the species from ALA.
         using the bulklookup name service.
-        '''
+        """
         species_names = list(map(normalise_species_name, species_names))
         # we don't bother using the cache for bulk requests, but
         # it's there to handle one-off queries later on
@@ -59,7 +59,7 @@ class ALASpeciesLookup:
         logger.debug("ALASpeciesLookup.get_bulk({})".format(species_names))
         ala_names = []
         for species_name, result in zip(species_names, response):
-            ala_name = normalise_species_name(result.get('name'))
+            ala_name = normalise_species_name(result.get("name"))
             self._cache[species_name] = ala_name
             ala_names.append(ala_name)
         return ala_names
@@ -74,16 +74,18 @@ class ALASpeciesLookup:
         response = requests.post(self.url, json={"names": species_names})
         result = response.json()
         if response.status_code != 200 or not result:
-            raise Exception("ALASpeciesLookup: {} -> {}/{}".format(
-                species_names,
-                response.status_code,
-                result))
+            raise Exception(
+                "ALASpeciesLookup: {} -> {}/{}".format(
+                    species_names, response.status_code, result
+                )
+            )
         return result
 
 
 class GeneralisationRules:
     WITHHOLD = "WITHHOLD"
     KM = re.compile(r"^(\d+)km$")
+
 
 class Generalisation:
     def __init__(self, generalisation_expression):
@@ -98,8 +100,7 @@ class Generalisation:
             latitude = longitude = None
         elif self.km is not None:
             if latitude and longitude:
-                latitude, longitude = self._generalise(
-                    latitude, longitude, self.km)
+                latitude, longitude = self._generalise(latitude, longitude, self.km)
             else:
                 latitude = longitude = None
         return latitude, longitude
@@ -130,8 +131,7 @@ class Generalisation:
         if m:
             self.km = int(m.groups()[0])
         else:
-            logger.error(
-                "Unrecognised generalisation expression: %s" % expression)
+            logger.error("Unrecognised generalisation expression: %s" % expression)
 
 
 class AustralianStates:
@@ -142,7 +142,7 @@ class AustralianStates:
         # note: lazy initialisation of the shape lookup
         if self._shapes is None:
             self._shapes = list(self._load_shapes())
-        assert(len(self._shapes) > 0)
+        assert len(self._shapes) > 0
         return self._shapes
 
     def lookup(self, lat, lng):
@@ -158,19 +158,16 @@ class AustralianStates:
 
     def _load_shapes(self):
         psma_dir = self._get_psma_directory()
-        for state_dir in glob(psma_dir + '/*/'):
-            state = state_dir.split('/')[-2]
-            shapefile_path = one(glob(state_dir + '*.shp'))
+        for state_dir in glob(psma_dir + "/*/"):
+            state = state_dir.split("/")[-2]
+            shapefile_path = one(glob(state_dir + "*.shp"))
             with fiona.open(shapefile_path) as coll:
                 for state_shape_record in coll:
-                    shape = shapely.geometry.asShape(
-                        state_shape_record['geometry'])
+                    shape = shapely.geometry.asShape(state_shape_record["geometry"])
                     minx, miny, maxx, maxy = shape.bounds
-                    bounds_poly = shapely.geometry.Polygon([
-                        (minx, miny),
-                        (minx, maxy),
-                        (maxx, maxy),
-                        (maxx, miny)])
+                    bounds_poly = shapely.geometry.Polygon(
+                        [(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)]
+                    )
                     yield state, bounds_poly, shape
 
     def _get_psma_directory(self):
@@ -193,12 +190,11 @@ class SensitiveDataGeneraliser:
         self.sensitive_species_map = {}
         for csv in glob(os.path.join(self.sensitive_files_path, "*.csv")):
             location = os.path.splitext(os.path.basename(csv))[0]
-            _, rows = csv_to_named_tuple('SensitiveData', csv)
+            _, rows = csv_to_named_tuple("SensitiveData", csv)
             data = {}
             for row in rows:
                 sn = normalise_species_name(row.scientificname)
-                data[sn] = getattr(row, "generalisation",
-                                   self.DEFAULT_GENERALISATION)
+                data[sn] = getattr(row, "generalisation", self.DEFAULT_GENERALISATION)
             self.sensitive_species_map[location] = data
         self._all_sensitive_species_names = set()
         for species_map in self.sensitive_species_map.values():
@@ -206,7 +202,8 @@ class SensitiveDataGeneraliser:
 
     def _get_generalisation_expression(self, state, species_name):
         return self.sensitive_species_map[state].get(
-            normalise_species_name(species_name))
+            normalise_species_name(species_name)
+        )
 
     def check_species_sensitivity(self, state, species_name):
         # optimisation: if this species isn't sensitive in any state
@@ -214,13 +211,13 @@ class SensitiveDataGeneraliser:
         if species_name not in self._all_sensitive_species_names:
             return
 
-        return self._get_generalisation_expression(
-            state, species_name)
+        return self._get_generalisation_expression(state, species_name)
 
     def generalise_australia(self, species_name, state, latitude, longitude):
         ala_species_name = self.ala_lookup.get(species_name)
-        return self.check_species_sensitivity(state, ala_species_name) \
-            or self.check_species_sensitivity(state, species_name)
+        return self.check_species_sensitivity(
+            state, ala_species_name
+        ) or self.check_species_sensitivity(state, species_name)
 
     def apply(self, species_name, latitude, longitude):
         if latitude is None or longitude is None:
@@ -232,15 +229,12 @@ class SensitiveDataGeneraliser:
         expr = self.DEFAULT_GENERALISATION
         # we only query the ALA species database if in Australia
         if state is not None:
-            expr = self.generalise_australia(
-                species_name, state, latitude, longitude)
+            expr = self.generalise_australia(species_name, state, latitude, longitude)
 
-        lat, lon = Generalisation(expr).apply(
-            latitude, longitude)
+        lat, lon = Generalisation(expr).apply(latitude, longitude)
 
         # logger.debug(
         #     "generalisation({}): species_name={}: {},{} -> {},{}".format(
         #         expr, species_name, latitude, longitude, lat, lon))
 
-        return GeneralisedData(
-            species_name, lat, lon, expr, ala_species_name)
+        return GeneralisedData(species_name, lat, lon, expr, ala_species_name)
