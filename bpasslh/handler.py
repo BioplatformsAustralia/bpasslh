@@ -7,10 +7,8 @@ import shapely.geometry
 import fiona
 from glob import glob
 from .util import csv_to_named_tuple
-from .util import make_logger
 
 
-logger = make_logger(__name__)
 DATA_DIR = "data"
 
 
@@ -43,7 +41,8 @@ def resolve_package_path(rel_path):
 
 
 class ALASpeciesLookup:
-    def __init__(self):
+    def __init__(self, logger):
+        self._logger = logger
         self._cache = {}
         self.url = "https://bie.ala.org.au/ws/species/lookup/bulk"
 
@@ -56,7 +55,7 @@ class ALASpeciesLookup:
         # we don't bother using the cache for bulk requests, but
         # it's there to handle one-off queries later on
         response = self._ala_lookup(species_names)
-        logger.debug("ALASpeciesLookup.get_bulk({})".format(species_names))
+        self._logger.debug("ALASpeciesLookup.get_bulk({})".format(species_names))
         ala_names = []
         for species_name, result in zip(species_names, response):
             ala_name = normalise_species_name(result.get("name"))
@@ -131,7 +130,9 @@ class Generalisation:
         if m:
             self.km = int(m.groups()[0])
         else:
-            logger.error("Unrecognised generalisation expression: %s" % expression)
+            self._logger.error(
+                "Unrecognised generalisation expression: %s" % expression
+            )
 
 
 class AustralianStates:
@@ -177,10 +178,11 @@ class AustralianStates:
 class SensitiveDataGeneraliser:
     DEFAULT_GENERALISATION = "1km"
 
-    def __init__(self):
+    def __init__(self, logger):
+        self._logger = logger
         self.sensitive_files_path = self._get_sensitive_files_path()
         self._load_sensitive_species_data()
-        self.ala_lookup = ALASpeciesLookup()
+        self.ala_lookup = ALASpeciesLookup(self._logger)
         self.states = AustralianStates()
 
     def _get_sensitive_files_path(self):
@@ -232,9 +234,5 @@ class SensitiveDataGeneraliser:
             expr = self.generalise_australia(species_name, state, latitude, longitude)
 
         lat, lon = Generalisation(expr).apply(latitude, longitude)
-
-        # logger.debug(
-        #     "generalisation({}): species_name={}: {},{} -> {},{}".format(
-        #         expr, species_name, latitude, longitude, lat, lon))
 
         return GeneralisedData(species_name, lat, lon, expr, ala_species_name)

@@ -1,4 +1,3 @@
-import logging
 import string
 
 import re
@@ -6,19 +5,6 @@ import csv
 
 
 from collections import namedtuple
-
-
-def make_logger(name):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    fmt = logging.Formatter(
-        "%(asctime)s [%(levelname)-7s] [%(threadName)s]  %(message)s"
-    )
-    handler.setFormatter(fmt)
-    logger.addHandler(handler)
-    return logger
-
 
 digit_words = {
     "0": "zero",
