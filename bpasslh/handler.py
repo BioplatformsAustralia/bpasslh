@@ -87,10 +87,9 @@ class GeneralisationRules:
 
 
 class Generalisation:
-    def __init__(self, generalisation_expression, logger):
+    def __init__(self, generalisation_expression):
         self.expression = generalisation_expression
         self._parse(self.expression)
-        self._logger = logger
 
     def apply(self, latitude, longitude):
         if self.expression is None:
@@ -107,15 +106,12 @@ class Generalisation:
 
     def _generalise(self, latitude, longitude, km):
         if km < 10:
-            self._logger.debug("rounding for < 10")
             rounded_lat = round(latitude, 2)
             rounded_long = round(longitude, 2)
         elif km >= 10 and km < 100:
-            self._logger.debug("rounding for > 10, < 100")
             rounded_lat = round(latitude, 1)
             rounded_long = round(longitude, 1)
         elif km > 100:
-            self._logger.debug("rounding for > 100")
             rounded_lat = round(latitude, 0)
             rounded_long = round(longitude, 0)
 
@@ -128,7 +124,6 @@ class Generalisation:
         if expression is None:
             return
         if expression == GeneralisationRules.WITHHOLD:
-            self._logger.debug("Generalised: WITHHOLD...")
             self.withhold = True
             return
         m = GeneralisationRules.KM.match(expression)
@@ -239,7 +234,6 @@ class SensitiveDataGeneraliser:
             expr = self.generalise_australia(species_name, state, latitude, longitude)
         self._logger.debug(f"original lat and long is {latitude} {longitude}")
         self._logger.debug(f"Generalising to: {expr}")
-        lat, lon = Generalisation(expr, self._logger).apply(latitude, longitude)
-
+        lat, lon = Generalisation(expr).apply(latitude, longitude)
 
         return GeneralisedData(species_name, lat, lon, expr, ala_species_name)
