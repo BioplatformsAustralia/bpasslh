@@ -93,7 +93,7 @@ class Generalisation:
 
     def apply(self, latitude, longitude):
         if self.expression is None:
-            return longitude, latitude
+            return latitude, longitude
 
         if self.withhold:
             latitude = longitude = None
