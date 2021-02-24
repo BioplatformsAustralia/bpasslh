@@ -111,3 +111,4 @@ lib64
 test.json
 .esri.gz
 .idea/
+.DS_Store
