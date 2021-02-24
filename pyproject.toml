@@ -4,7 +4,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "bpasslh"
-version = "2.1.3
+version = "2.1.3"
 authors = ["Grahame Bowland <grahame.bowland@qcif.edu.au>"]
 description = "Location generalisation for sensitive species"
 readme = "README.md"
