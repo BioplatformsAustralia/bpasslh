@@ -164,7 +164,7 @@ class AustralianStates:
             shapefile_path = one(glob(state_dir + "*.shp"))
             with fiona.open(shapefile_path) as coll:
                 for state_shape_record in coll:
-                    shape = shapely.geometry.asShape(state_shape_record["geometry"])
+                    shape = shapely.geometry.shape(state_shape_record["geometry"])
                     minx, miny, maxx, maxy = shape.bounds
                     bounds_poly = shapely.geometry.Polygon(
                         [(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)]
