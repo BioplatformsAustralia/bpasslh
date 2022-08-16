@@ -44,7 +44,7 @@ class ALASpeciesLookup:
     def __init__(self, logger):
         self._logger = logger
         self._cache = {}
-        self.url = "https://bie.ala.org.au/ws/species/lookup/bulk"
+        self.url = "https://bie-ws.ala.org.au/ws/species/lookup/bulk"
 
     def get_bulk(self, species_names):
         """
